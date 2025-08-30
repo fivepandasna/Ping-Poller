@@ -4,18 +4,70 @@ import platform
 import re
 import threading
 import time
+import csv
 from datetime import datetime, timedelta
 from collections import deque
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                              QWidget, QPushButton, QLineEdit, QSpinBox, QDoubleSpinBox, QLabel, 
                              QFrame, QGridLayout, QSizePolicy, QSpacerItem, QGraphicsOpacityEffect,
-                             QCheckBox, QGroupBox)
+                             QCheckBox, QGroupBox, QFileDialog, QMessageBox)
 from PyQt6.QtCore import QTimer, pyqtSignal, QObject, Qt, QPropertyAnimation, QEasingCurve, QParallelAnimationGroup
 from PyQt6.QtGui import QFont, QPalette, QColor, QIcon
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget
 import numpy as np
+
+
+class NetworkTester(QObject):
+    test_completed = pyqtSignal(bool, str)  # success, message
+    
+    def __init__(self):
+        super().__init__()
+        
+    def test_connection(self):
+        """Test network connectivity to multiple reliable hosts"""
+        thread = threading.Thread(target=self._test_connection_thread, daemon=True)
+        thread.start()
+        
+    def _test_connection_thread(self):
+        """Test connectivity in a separate thread"""
+        test_hosts = ["8.8.8.8", "1.1.1.1", "google.com"]  # Google DNS, Cloudflare DNS, Google
+        
+        for host in test_hosts:
+            if self._ping_host(host):
+                self.test_completed.emit(True, f"✓ Network connection is active (tested with {host})")
+                return
+                
+        self.test_completed.emit(False, "✗ No network connection detected")
+        
+    def _ping_host(self, host):
+        """Quick ping test to a single host"""
+        try:
+            system = platform.system().lower()
+            if system == "windows":
+                cmd = ["ping", "-n", "1", "-w", "3000", host]  # 3 second timeout
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = subprocess.SW_HIDE
+                creationflags = subprocess.CREATE_NO_WINDOW
+            else:
+                cmd = ["ping", "-c", "1", "-W", "3", host]  # 3 second timeout
+                startupinfo = None
+                creationflags = 0
+                
+            result = subprocess.run(
+                cmd, 
+                capture_output=True, 
+                text=True, 
+                timeout=5,
+                startupinfo=startupinfo,
+                creationflags=creationflags
+            )
+            
+            return result.returncode == 0
+        except Exception:
+            return False
 
 
 class PingWorker(QObject):
@@ -210,6 +262,90 @@ class ModernButton(QPushButton):
         # Store references to prevent garbage collection
         self._fade_out_anim = fade_out
         self._fade_in_anim = fade_in
+
+
+class CompactButton(QPushButton):
+    """Smaller button for header area"""
+    def __init__(self, text, style="secondary"):
+        super().__init__(text)
+        self.style_type = style
+        self.setMinimumHeight(32)
+        self.setMaximumHeight(32)
+        self.setFont(QFont("Segoe UI", 9, QFont.Weight.Medium))
+        self._setup_style()
+        
+    def _setup_style(self):
+        if self.style_type == "success":
+            self.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #28A745, stop: 1 #1E7E34);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    padding: 6px 12px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #34CE57, stop: 1 #28A745);
+                }
+                QPushButton:pressed {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #1E7E34, stop: 1 #155724);
+                }
+                QPushButton:disabled {
+                    background: #444444;
+                    color: #888888;
+                }
+            """)
+        elif self.style_type == "info":
+            self.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #17A2B8, stop: 1 #138496);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    padding: 6px 12px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #20C0DB, stop: 1 #17A2B8);
+                }
+                QPushButton:pressed {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #138496, stop: 1 #0C6674);
+                }
+                QPushButton:disabled {
+                    background: #444444;
+                    color: #888888;
+                }
+            """)
+        else:  # secondary
+            self.setStyleSheet("""
+                QPushButton {
+                    background: #3A3A3A;
+                    color: #E0E0E0;
+                    border: 1px solid #555555;
+                    border-radius: 6px;
+                    font-weight: 500;
+                    padding: 6px 12px;
+                }
+                QPushButton:hover {
+                    background: #464646;
+                    border-color: #666666;
+                }
+                QPushButton:pressed {
+                    background: #2E2E2E;
+                }
+                QPushButton:disabled {
+                    background: #2A2A2A;
+                    color: #666666;
+                    border-color: #444444;
+                }
+            """)
 
 
 class ModernLineEdit(QLineEdit):
@@ -603,10 +739,13 @@ class PingPlotter(QMainWindow):
         self.auto_range_enabled = True
         self.original_view_range = None
         
-        # Worker thread
+        # Worker threads
         self.ping_worker = PingWorker()
         self.ping_worker.ping_result.connect(self.on_ping_result)
         self.ping_worker.ping_failed.connect(self.on_ping_failed)
+        
+        self.network_tester = NetworkTester()
+        self.network_tester.test_completed.connect(self.on_network_test_completed)
         
         self._setup_ui()
         self._setup_graph()
@@ -620,12 +759,30 @@ class PingPlotter(QMainWindow):
         main_layout.setSpacing(20)
         main_layout.setContentsMargins(20, 20, 20, 20)
         
-        # Header
+        # Header with title and utility buttons
         header_layout = QHBoxLayout()
+        
         title = QLabel("Ping Plotter")
         title.setFont(QFont("Segoe UI", 24, QFont.Weight.Bold))
         title.setStyleSheet("color: #E0E0E0; margin-bottom: 10px;")
         header_layout.addWidget(title)
+        
+        # Add spacing between title and buttons
+        header_layout.addSpacing(20)
+        
+        # Network test button
+        self.network_test_button = CompactButton("🔗 Test Network", "success")
+        self.network_test_button.clicked.connect(self.test_network_connection)
+        self.network_test_button.setToolTip("Test basic network connectivity")
+        header_layout.addWidget(self.network_test_button)
+        
+        # Export CSV button
+        self.export_csv_button = CompactButton("📊 Export CSV", "info")
+        self.export_csv_button.clicked.connect(self.export_to_csv)
+        self.export_csv_button.setToolTip("Export ping data to CSV file")
+        self.export_csv_button.setEnabled(False)  # Disabled until we have data
+        header_layout.addWidget(self.export_csv_button)
+        
         header_layout.addStretch()
         
         main_layout.addLayout(header_layout)
@@ -868,6 +1025,95 @@ class PingPlotter(QMainWindow):
             }
         """)
         
+    def test_network_connection(self):
+        """Test network connectivity"""
+        # Disable the button during testing
+        self.network_test_button.setEnabled(False)
+        self.network_test_button.setText("🔄 Testing...")
+        
+        # Start the network test
+        self.network_tester.test_connection()
+    
+    def on_network_test_completed(self, success, message):
+        """Handle network test completion"""
+        # Re-enable the button
+        self.network_test_button.setEnabled(True)
+        self.network_test_button.setText("🔗 Test Network")
+        
+        # Show result message
+        if success:
+            QMessageBox.information(self, "Network Test", message)
+        else:
+            QMessageBox.warning(self, "Network Test", message)
+    
+    def export_to_csv(self):
+        """Export ping data to CSV file"""
+        if len(self.ping_times) == 0:
+            QMessageBox.information(self, "Export CSV", "No ping data to export. Run a test first.")
+            return
+        
+        # Open file dialog
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Ping Data to CSV",
+            f"ping_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            "CSV files (*.csv);;All files (*.*)"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                
+                # Write header
+                writer.writerow([
+                    'Timestamp', 'Elapsed_Time_Seconds', 'Ping_Time_MS', 
+                    'Target_Host', 'Test_Start_Time'
+                ])
+                
+                # Write data
+                target_host = self.domain_input.text().strip() if self.domain_input.text().strip() else "Unknown"
+                start_time_str = self.start_time.strftime('%Y-%m-%d %H:%M:%S') if self.start_time else "Unknown"
+                
+                for i, (elapsed_time, ping_time) in enumerate(zip(self.timestamps, self.ping_times)):
+                    if self.start_time:
+                        actual_timestamp = (self.start_time + timedelta(seconds=elapsed_time)).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                    else:
+                        actual_timestamp = f"T+{elapsed_time:.3f}s"
+                    
+                    writer.writerow([
+                        actual_timestamp,
+                        f"{elapsed_time:.3f}",
+                        f"{ping_time:.1f}",
+                        target_host,
+                        start_time_str
+                    ])
+                
+                # Write summary statistics
+                writer.writerow([])  # Empty row
+                writer.writerow(['=== SUMMARY STATISTICS ==='])
+                writer.writerow(['Metric', 'Value'])
+                writer.writerow(['Total Pings', str(self.ping_count)])
+                writer.writerow(['Failed Pings', str(self.failed_count)])
+                writer.writerow(['Packet Loss %', f"{(self.failed_count / (self.ping_count + self.failed_count) * 100) if (self.ping_count + self.failed_count) > 0 else 0:.1f}%"])
+                writer.writerow(['Average Ping (ms)', f"{(self.total_ping_time / self.ping_count) if self.ping_count > 0 else 0:.1f}"])
+                writer.writerow(['Minimum Ping (ms)', f"{self.min_ping if self.min_ping != float('inf') else 0:.1f}"])
+                writer.writerow(['Maximum Ping (ms)', f"{self.max_ping:.1f}"])
+                
+                if len(self.recent_pings) >= 2:
+                    jitter = np.std(np.array(self.recent_pings))
+                    writer.writerow(['Jitter (ms)', f"{jitter:.1f}"])
+                
+                writer.writerow(['Test Duration (seconds)', f"{max(self.timestamps) if self.timestamps else 0:.1f}"])
+                writer.writerow(['Ping Interval (seconds)', f"{self.interval_input.value():.1f}"])
+            
+            QMessageBox.information(self, "Export Complete", f"Ping data exported successfully to:\n{file_path}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", f"Failed to export data:\n{str(e)}")
+        
     def start_test(self):
         domain = self.domain_input.text().strip()
         if not domain:
@@ -878,6 +1124,9 @@ class PingPlotter(QMainWindow):
         
         # Reset data
         self.clear_data()
+        
+        # Enable export button now that we'll have data
+        self.export_csv_button.setEnabled(True)
         
         # Reset view to auto-range and hide reset button
         self.reset_view()
@@ -945,6 +1194,9 @@ class PingPlotter(QMainWindow):
         self.jitter_card.update_value("0 ms")
         self.status_card.update_value("Ready")
         self.status_card.value_label.setStyleSheet("color: #6C757D;")
+        
+        # Disable export button when no data
+        self.export_csv_button.setEnabled(False)
         
     def on_ping_result(self, ping_time):
         if not self.is_running:
