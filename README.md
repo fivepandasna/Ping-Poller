@@ -17,12 +17,14 @@ A simple GUI based ping tester, good when looking for spikes
 
 ## Todo
 
-- Modularize code
-- Improve performance and stop storing data in memory for long tests
-- Improve error handling and reporting
-- Add support for a light ui
-- Reduce duplicate code and logic
-- Use constants for colours ;-;
-- Add a settings page?
-- Add option in settings to change graph update interval to reduce 
-- Add even more documentation 
+- [x] Create a myproject.toml or requirements.txt
+- [ ] Modularize code
+- [ ] Improve performance and stop storing data in memory for long tests
+- [ ] Improve error handling and reporting
+- [ ] Add support for a light ui
+- [ ] Reduce duplicate code and logic
+- [ ] Use constants for colours ;-;
+- [ ] Add a settings page?
+- [ ] Add option in settings to change graph update interval to reduce some load
+- [ ] Add even more documentation
+- [ ] Add data importing 
