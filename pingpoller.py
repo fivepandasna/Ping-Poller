@@ -5,8 +5,11 @@ import re
 import threading
 import time
 import csv
+import ctypes
 from datetime import datetime, timedelta
 from collections import deque
+if platform.system() == "Windows":
+    import ctypes
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                              QWidget, QPushButton, QLineEdit, QSpinBox, QDoubleSpinBox, QLabel, 
@@ -719,7 +722,7 @@ class PingPoller(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Ping Poller")
-        self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 1200, 800)   
         
         # Data storage
         self.ping_times = deque(maxlen=1000)
@@ -1282,16 +1285,27 @@ class PingPoller(QMainWindow):
 
 
 def main():
-    app = QApplication(sys.argv)
-    app.setApplicationName("Ping Poller")
+     if platform.system() == "Windows":
+        try:
+            app_id = 'PingPoller.1.0.0'  # Change this to your preferred ID
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+        except Exception:
+            # Silently fail if there are issues (e.g., on older Windows versions)
+            pass
+        
+     app = QApplication(sys.argv)
+     app.setApplicationName("Ping Poller") 
+     app.setApplicationVersion("1.0.0")
+
+     # Set application style
+     app.setStyle('Fusion')
     
-    # Set application style
-    app.setStyle('Fusion')
-    
-    window = PingPoller()
-    window.show()
-    
-    sys.exit(app.exec())
+     app.setWindowIcon(QIcon('assets/icons/ping-poller.ico'))
+
+     window = PingPoller()
+     window.show()
+     
+     sys.exit(app.exec())
 
 
 if __name__ == "__main__":
