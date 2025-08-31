@@ -1,0 +1,18 @@
+[project]
+name = "Ping Poller"
+version = "1.0.0"
+description = "A simple GUI-based ping tester for graphing and monitoring ping."
+license = "MIT"
+
+[[project.authors]]
+name = "Ashaan Dalgliesh"
+
+dependencies = [
+    "PyQt6>=6.5",
+    "pyqtgraph>=0.13",
+    "numpy>=1.25"
+]
+
+[build-system]
+requires = ["setuptools>=65.5.1", "wheel"]
+build-backend = "setuptools.build_meta"
