@@ -17,7 +17,9 @@ A simple GUI based ping tester, good when looking for spikes
 
 ## Todo
 
+ -[x] Publish a release
 - [x] Create a myproject.toml or requirements.txt
+- [ ] Create an installer
 - [ ] Modularize code
 - [ ] Improve performance and stop storing data in memory for long tests
 - [ ] Improve error handling and reporting
