@@ -22,6 +22,73 @@ from pyqtgraph import PlotWidget
 import numpy as np
 
 
+# Color Constants
+class Colors:
+    # Background colors
+    PRIMARY_BG = "#1E1E1E"
+    SECONDARY_BG = "#2A2A2A"
+    TERTIARY_BG = "#3A3A3A"
+    HOVER_BG = "#464646"
+    PRESSED_BG = "#2E2E2E"
+    DISABLED_BG = "#444444"
+    
+    # Text colors
+    PRIMARY_TEXT = "#E0E0E0"
+    SECONDARY_TEXT = "#AAAAAA"
+    DISABLED_TEXT = "#888888"
+    MUTED_TEXT = "#666666"
+    
+    # Border colors
+    PRIMARY_BORDER = "#444444"
+    SECONDARY_BORDER = "#555555"
+    TERTIARY_BORDER = "#666666"
+    FOCUS_BORDER = "#4A90E2"
+    
+    # Brand colors
+    PRIMARY_BLUE = "#4A90E2"
+    PRIMARY_BLUE_HOVER = "#5BA0F2"
+    PRIMARY_BLUE_PRESSED = "#357ABD"
+    PRIMARY_BLUE_DARK = "#2E6BA8"
+    
+    # Status colors
+    SUCCESS = "#28A745"
+    SUCCESS_HOVER = "#34CE57"
+    SUCCESS_PRESSED = "#1E7E34"
+    SUCCESS_DARK = "#155724"
+    
+    INFO = "#17A2B8"
+    INFO_HOVER = "#20C0DB"
+    INFO_PRESSED = "#138496"
+    INFO_DARK = "#0C6674"
+    
+    WARNING = "#FFC107"
+    WARNING_ORANGE = "#FD7E14"
+    
+    DANGER = "#DC3545"
+    DANGER_HOVER = "#EC7063"
+    DANGER_PRESSED = "#C0392B"
+    DANGER_DARK = "#A93226"
+    
+    # Special colors
+    PURPLE = "#6F42C1"
+    PURPLE_HOVER = "#8A5CF5"
+    PURPLE_PRESSED = "#5A31A5"
+    PURPLE_DARK = "#4C2A91"
+    
+    PINK = "#E83E8C"
+    GRAY = "#6C757D"
+    
+    # Chart colors
+    CHART_BLUE = PRIMARY_BLUE
+    CHART_GREEN = SUCCESS
+    CHART_RED = DANGER
+    CHART_PURPLE = PURPLE
+    CHART_CYAN = INFO
+    CHART_ORANGE = WARNING_ORANGE
+    CHART_PINK = PINK
+    CHART_GRAY = GRAY
+
+
 class NetworkTester(QObject):
     test_completed = pyqtSignal(bool, str)  # success, message
     
@@ -157,76 +224,76 @@ class ModernButton(QPushButton):
         
     def _setup_style(self):
         if self.primary:
-            self.setStyleSheet("""
-                QPushButton {
+            self.setStyleSheet(f"""
+                QPushButton {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #4A90E2, stop: 1 #357ABD);
+                                                stop: 0 {Colors.PRIMARY_BLUE}, stop: 1 {Colors.PRIMARY_BLUE_PRESSED});
                     color: white;
                     border: none;
                     border-radius: 8px;
                     font-weight: 600;
                     padding: 8px 16px;
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #5BA0F2, stop: 1 #4A90E2);
-                }
-                QPushButton:pressed {
+                                                stop: 0 {Colors.PRIMARY_BLUE_HOVER}, stop: 1 {Colors.PRIMARY_BLUE});
+                }}
+                QPushButton:pressed {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #357ABD, stop: 1 #2E6BA8);
-                }
-                QPushButton:disabled {
-                    background: #444444;
-                    color: #888888;
-                }
+                                                stop: 0 {Colors.PRIMARY_BLUE_PRESSED}, stop: 1 {Colors.PRIMARY_BLUE_DARK});
+                }}
+                QPushButton:disabled {{
+                    background: {Colors.DISABLED_BG};
+                    color: {Colors.DISABLED_TEXT};
+                }}
             """)
         elif self.is_danger_mode:
             # Red styling for danger state
-            self.setStyleSheet("""
-                QPushButton {
+            self.setStyleSheet(f"""
+                QPushButton {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #E74C3C, stop: 1 #C0392B);
+                                                stop: 0 {Colors.DANGER}, stop: 1 {Colors.DANGER_PRESSED});
                     color: white;
                     border: none;
                     border-radius: 8px;
                     font-weight: 600;
                     padding: 8px 16px;
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #EC7063, stop: 1 #E74C3C);
-                }
-                QPushButton:pressed {
+                                                stop: 0 {Colors.DANGER_HOVER}, stop: 1 {Colors.DANGER});
+                }}
+                QPushButton:pressed {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #C0392B, stop: 1 #A93226);
-                }
-                QPushButton:disabled {
-                    background: #444444;
-                    color: #888888;
-                }
+                                                stop: 0 {Colors.DANGER_PRESSED}, stop: 1 {Colors.DANGER_DARK});
+                }}
+                QPushButton:disabled {{
+                    background: {Colors.DISABLED_BG};
+                    color: {Colors.DISABLED_TEXT};
+                }}
             """)
         else:
-            self.setStyleSheet("""
-                QPushButton {
-                    background: #3A3A3A;
-                    color: #E0E0E0;
-                    border: 1px solid #555555;
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background: {Colors.TERTIARY_BG};
+                    color: {Colors.PRIMARY_TEXT};
+                    border: 1px solid {Colors.SECONDARY_BORDER};
                     border-radius: 8px;
                     font-weight: 500;
                     padding: 8px 16px;
-                }
-                QPushButton:hover {
-                    background: #464646;
-                    border-color: #666666;
-                }
-                QPushButton:pressed {
-                    background: #2E2E2E;
-                }
-                QPushButton:disabled {
-                    background: #2A2A2A;
-                    color: #666666;
-                    border-color: #444444;
-                }
+                }}
+                QPushButton:hover {{
+                    background: {Colors.HOVER_BG};
+                    border-color: {Colors.TERTIARY_BORDER};
+                }}
+                QPushButton:pressed {{
+                    background: {Colors.PRESSED_BG};
+                }}
+                QPushButton:disabled {{
+                    background: {Colors.SECONDARY_BG};
+                    color: {Colors.MUTED_TEXT};
+                    border-color: {Colors.DISABLED_BG};
+                }}
             """)
     
     def set_danger_mode(self, danger):
@@ -279,99 +346,99 @@ class CompactButton(QPushButton):
         
     def _setup_style(self):
         if self.style_type == "success":
-            self.setStyleSheet("""
-                QPushButton {
+            self.setStyleSheet(f"""
+                QPushButton {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #28A745, stop: 1 #1E7E34);
+                                                stop: 0 {Colors.SUCCESS}, stop: 1 {Colors.SUCCESS_PRESSED});
                     color: white;
                     border: none;
                     border-radius: 6px;
                     font-weight: 600;
                     padding: 6px 12px;
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #34CE57, stop: 1 #28A745);
-                }
-                QPushButton:pressed {
+                                                stop: 0 {Colors.SUCCESS_HOVER}, stop: 1 {Colors.SUCCESS});
+                }}
+                QPushButton:pressed {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #1E7E34, stop: 1 #155724);
-                }
-                QPushButton:disabled {
-                    background: #444444;
-                    color: #888888;
-                }
+                                                stop: 0 {Colors.SUCCESS_PRESSED}, stop: 1 {Colors.SUCCESS_DARK});
+                }}
+                QPushButton:disabled {{
+                    background: {Colors.DISABLED_BG};
+                    color: {Colors.DISABLED_TEXT};
+                }}
             """)
         elif self.style_type == "info":
-            self.setStyleSheet("""
-                QPushButton {
+            self.setStyleSheet(f"""
+                QPushButton {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #17A2B8, stop: 1 #138496);
+                                                stop: 0 {Colors.INFO}, stop: 1 {Colors.INFO_PRESSED});
                     color: white;
                     border: none;
                     border-radius: 6px;
                     font-weight: 600;
                     padding: 6px 12px;
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #20C0DB, stop: 1 #17A2B8);
-                }
-                QPushButton:pressed {
+                                                stop: 0 {Colors.INFO_HOVER}, stop: 1 {Colors.INFO});
+                }}
+                QPushButton:pressed {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #138496, stop: 1 #0C6674);
-                }
-                QPushButton:disabled {
-                    background: #444444;
-                    color: #888888;
-                }
+                                                stop: 0 {Colors.INFO_PRESSED}, stop: 1 {Colors.INFO_DARK});
+                }}
+                QPushButton:disabled {{
+                    background: {Colors.DISABLED_BG};
+                    color: {Colors.DISABLED_TEXT};
+                }}
             """)
         elif self.style_type == "settings":
-            self.setStyleSheet("""
-                QPushButton {
+            self.setStyleSheet(f"""
+                QPushButton {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #6F42C1, stop: 1 #5A31A5);
+                                                stop: 0 {Colors.PURPLE}, stop: 1 {Colors.PURPLE_PRESSED});
                     color: white;
                     border: none;
                     border-radius: 6px;
                     font-weight: 600;
                     padding: 6px 12px;
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #8A5CF5, stop: 1 #6F42C1);
-                }
-                QPushButton:pressed {
+                                                stop: 0 {Colors.PURPLE_HOVER}, stop: 1 {Colors.PURPLE});
+                }}
+                QPushButton:pressed {{
                     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                                stop: 0 #5A31A5, stop: 1 #4C2A91);
-                }
-                QPushButton:disabled {
-                    background: #444444;
-                    color: #888888;
-                }
+                                                stop: 0 {Colors.PURPLE_PRESSED}, stop: 1 {Colors.PURPLE_DARK});
+                }}
+                QPushButton:disabled {{
+                    background: {Colors.DISABLED_BG};
+                    color: {Colors.DISABLED_TEXT};
+                }}
             """)
         else:  # secondary
-            self.setStyleSheet("""
-                QPushButton {
-                    background: #3A3A3A;
-                    color: #E0E0E0;
-                    border: 1px solid #555555;
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background: {Colors.TERTIARY_BG};
+                    color: {Colors.PRIMARY_TEXT};
+                    border: 1px solid {Colors.SECONDARY_BORDER};
                     border-radius: 6px;
                     font-weight: 500;
                     padding: 6px 12px;
-                }
-                QPushButton:hover {
-                    background: #464646;
-                    border-color: #666666;
-                }
-                QPushButton:pressed {
-                    background: #2E2E2E;
-                }
-                QPushButton:disabled {
-                    background: #2A2A2A;
-                    color: #666666;
-                    border-color: #444444;
-                }
+                }}
+                QPushButton:hover {{
+                    background: {Colors.HOVER_BG};
+                    border-color: {Colors.TERTIARY_BORDER};
+                }}
+                QPushButton:pressed {{
+                    background: {Colors.PRESSED_BG};
+                }}
+                QPushButton:disabled {{
+                    background: {Colors.SECONDARY_BG};
+                    color: {Colors.MUTED_TEXT};
+                    border-color: {Colors.DISABLED_BG};
+                }}
             """)
 
 
@@ -381,25 +448,25 @@ class ModernLineEdit(QLineEdit):
         self.setPlaceholderText(placeholder)
         self.setMinimumHeight(40)
         self.setFont(QFont("Segoe UI", 10))
-        self.setStyleSheet("""
-            QLineEdit {
-                background: #2A2A2A;
-                border: 2px solid #444444;
+        self.setStyleSheet(f"""
+            QLineEdit {{
+                background: {Colors.SECONDARY_BG};
+                border: 2px solid {Colors.PRIMARY_BORDER};
                 border-radius: 8px;
                 padding: 8px 12px;
                 font-size: 10pt;
-                color: #E0E0E0;
-            }
-            QLineEdit:focus {
-                border-color: #4A90E2;
+                color: {Colors.PRIMARY_TEXT};
+            }}
+            QLineEdit:focus {{
+                border-color: {Colors.FOCUS_BORDER};
                 outline: none;
-            }
-            QLineEdit:hover {
-                border-color: #555555;
-            }
-            QLineEdit::placeholder {
-                color: #888888;
-            }
+            }}
+            QLineEdit:hover {{
+                border-color: {Colors.SECONDARY_BORDER};
+            }}
+            QLineEdit::placeholder {{
+                color: {Colors.DISABLED_TEXT};
+            }}
         """)
 
 
@@ -408,22 +475,22 @@ class ModernSpinBox(QSpinBox):
         super().__init__()
         self.setMinimumHeight(40)
         self.setFont(QFont("Segoe UI", 10))
-        self.setStyleSheet("""
-            QSpinBox {
-                background: #2A2A2A;
-                border: 2px solid #444444;
+        self.setStyleSheet(f"""
+            QSpinBox {{
+                background: {Colors.SECONDARY_BG};
+                border: 2px solid {Colors.PRIMARY_BORDER};
                 border-radius: 8px;
                 padding: 8px 12px;
                 font-size: 10pt;
-                color: #E0E0E0;
-            }
-            QSpinBox:focus {
-                border-color: #4A90E2;
+                color: {Colors.PRIMARY_TEXT};
+            }}
+            QSpinBox:focus {{
+                border-color: {Colors.FOCUS_BORDER};
                 outline: none;
-            }
-            QSpinBox:hover {
-                border-color: #555555;
-            }
+            }}
+            QSpinBox:hover {{
+                border-color: {Colors.SECONDARY_BORDER};
+            }}
         """)
 
 
@@ -432,22 +499,22 @@ class ModernDoubleSpinBox(QDoubleSpinBox):
         super().__init__()
         self.setMinimumHeight(40)
         self.setFont(QFont("Segoe UI", 10))
-        self.setStyleSheet("""
-            QDoubleSpinBox {
-                background: #2A2A2A;
-                border: 2px solid #444444;
+        self.setStyleSheet(f"""
+            QDoubleSpinBox {{
+                background: {Colors.SECONDARY_BG};
+                border: 2px solid {Colors.PRIMARY_BORDER};
                 border-radius: 8px;
                 padding: 8px 12px;
                 font-size: 10pt;
-                color: #E0E0E0;
-            }
-            QDoubleSpinBox:focus {
-                border-color: #4A90E2;
+                color: {Colors.PRIMARY_TEXT};
+            }}
+            QDoubleSpinBox:focus {{
+                border-color: {Colors.FOCUS_BORDER};
                 outline: none;
-            }
-            QDoubleSpinBox:hover {
-                border-color: #555555;
-            }
+            }}
+            QDoubleSpinBox:hover {{
+                border-color: {Colors.SECONDARY_BORDER};
+            }}
         """)
 
 
@@ -455,47 +522,47 @@ class ModernCheckBox(QCheckBox):
     def __init__(self, text=""):
         super().__init__(text)
         self.setFont(QFont("Segoe UI", 10))
-        self.setStyleSheet("""
-            QCheckBox {
-                color: #E0E0E0;
+        self.setStyleSheet(f"""
+            QCheckBox {{
+                color: {Colors.PRIMARY_TEXT};
                 spacing: 8px;
-            }
-            QCheckBox::indicator {
+            }}
+            QCheckBox::indicator {{
                 width: 18px;
                 height: 18px;
                 border-radius: 4px;
-                border: 2px solid #555555;
-                background: #2A2A2A;
-            }
-            QCheckBox::indicator:checked {
-                background: #4A90E2;
-                border-color: #4A90E2;
-            }
-            QCheckBox::indicator:checked:hover {
-                background: #5BA0F2;
-                border-color: #5BA0F2;
-            }
-            QCheckBox::indicator:hover {
-                border-color: #666666;
-                background: #333333;
-            }
-            QCheckBox::indicator:checked::after {
+                border: 2px solid {Colors.SECONDARY_BORDER};
+                background: {Colors.SECONDARY_BG};
+            }}
+            QCheckBox::indicator:checked {{
+                background: {Colors.PRIMARY_BLUE};
+                border-color: {Colors.PRIMARY_BLUE};
+            }}
+            QCheckBox::indicator:checked:hover {{
+                background: {Colors.PRIMARY_BLUE_HOVER};
+                border-color: {Colors.PRIMARY_BLUE_HOVER};
+            }}
+            QCheckBox::indicator:hover {{
+                border-color: {Colors.TERTIARY_BORDER};
+                background: {Colors.TERTIARY_BG};
+            }}
+            QCheckBox::indicator:checked::after {{
                 content: "✓";
                 color: white;
                 font-size: 12px;
                 font-weight: bold;
-            }
+            }}
         """)
 
 
 class StatCard(QFrame):
-    def __init__(self, title, value="0 ms", color="#4A90E2"):
+    def __init__(self, title, value="0 ms", color=Colors.PRIMARY_BLUE):
         super().__init__()
         self.setFixedHeight(100)
         self.setStyleSheet(f"""
             QFrame {{
-                background: #2A2A2A;
-                border: 1px solid #444444;
+                background: {Colors.SECONDARY_BG};
+                border: 1px solid {Colors.PRIMARY_BORDER};
                 border-radius: 12px;
                 border-left: 4px solid {color};
             }}
@@ -506,7 +573,7 @@ class StatCard(QFrame):
         
         title_label = QLabel(title)
         title_label.setFont(QFont("Segoe UI", 9, QFont.Weight.Medium))
-        title_label.setStyleSheet("color: #AAAAAA;")
+        title_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
         
         self.value_label = QLabel(value)
         self.value_label.setFont(QFont("Segoe UI", 18, QFont.Weight.Bold))
@@ -531,29 +598,29 @@ class SettingsDialog(QDialog):
         self.setMinimumHeight(300)
         
         # Apply dark theme to dialog
-        self.setStyleSheet("""
-            QDialog {
-                background: #1E1E1E;
-                color: #E0E0E0;
-            }
-            QLabel {
-                color: #E0E0E0;
+        self.setStyleSheet(f"""
+            QDialog {{
+                background: {Colors.PRIMARY_BG};
+                color: {Colors.PRIMARY_TEXT};
+            }}
+            QLabel {{
+                color: {Colors.PRIMARY_TEXT};
                 font-size: 10pt;
-            }
-            QGroupBox {
-                color: #E0E0E0;
+            }}
+            QGroupBox {{
+                color: {Colors.PRIMARY_TEXT};
                 font-weight: bold;
-                border: 2px solid #444444;
+                border: 2px solid {Colors.PRIMARY_BORDER};
                 border-radius: 8px;
                 margin-top: 12px;
                 padding-top: 10px;
-            }
-            QGroupBox::title {
+            }}
+            QGroupBox::title {{
                 subcontrol-origin: margin;
                 left: 10px;
                 padding: 0 8px 0 8px;
-                color: #4A90E2;
-            }
+                color: {Colors.PRIMARY_BLUE};
+            }}
         """)
         
         layout = QVBoxLayout(self)
@@ -563,7 +630,7 @@ class SettingsDialog(QDialog):
         # Title
         title = QLabel("Display Settings")
         title.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
-        title.setStyleSheet("color: #4A90E2; margin-bottom: 10px;")
+        title.setStyleSheet(f"color: {Colors.PRIMARY_BLUE}; margin-bottom: 10px;")
         layout.addWidget(title)
         
         # Statistics Group
@@ -579,7 +646,7 @@ class SettingsDialog(QDialog):
         # Advanced stats description
         advanced_desc = QLabel("Advanced statistics include minimum/maximum ping times, jitter (variance), and connection quality indicators.")
         advanced_desc.setWordWrap(True)
-        advanced_desc.setStyleSheet("color: #AAAAAA; font-size: 9pt; margin-left: 25px;")
+        advanced_desc.setStyleSheet(f"color: {Colors.SECONDARY_TEXT}; font-size: 9pt; margin-left: 25px;")
         stats_layout.addWidget(advanced_desc)
         
         layout.addWidget(stats_group)
@@ -597,7 +664,7 @@ class SettingsDialog(QDialog):
         # Graph options description
         graph_desc = QLabel("Graph view controls allow you to enable follow mode (scrolling window) and provide manual view reset options.")
         graph_desc.setWordWrap(True)
-        graph_desc.setStyleSheet("color: #AAAAAA; font-size: 9pt; margin-left: 25px;")
+        graph_desc.setStyleSheet(f"color: {Colors.SECONDARY_TEXT}; font-size: 9pt; margin-left: 25px;")
         graph_layout.addWidget(graph_desc)
         
         layout.addWidget(graph_group)
@@ -607,32 +674,32 @@ class SettingsDialog(QDialog):
         
         # Dialog buttons
         button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-        button_box.setStyleSheet("""
-            QDialogButtonBox QPushButton {
-                background: #3A3A3A;
-                color: #E0E0E0;
-                border: 1px solid #555555;
+        button_box.setStyleSheet(f"""
+            QDialogButtonBox QPushButton {{
+                background: {Colors.TERTIARY_BG};
+                color: {Colors.PRIMARY_TEXT};
+                border: 1px solid {Colors.SECONDARY_BORDER};
                 border-radius: 6px;
                 font-weight: 500;
                 padding: 8px 16px;
                 min-width: 80px;
-            }
-            QDialogButtonBox QPushButton:hover {
-                background: #464646;
-                border-color: #666666;
-            }
-            QDialogButtonBox QPushButton:pressed {
-                background: #2E2E2E;
-            }
-            QDialogButtonBox QPushButton[text="OK"] {
+            }}
+            QDialogButtonBox QPushButton:hover {{
+                background: {Colors.HOVER_BG};
+                border-color: {Colors.TERTIARY_BORDER};
+            }}
+            QDialogButtonBox QPushButton:pressed {{
+                background: {Colors.PRESSED_BG};
+            }}
+            QDialogButtonBox QPushButton[text="OK"] {{
                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                            stop: 0 #4A90E2, stop: 1 #357ABD);
+                                            stop: 0 {Colors.PRIMARY_BLUE}, stop: 1 {Colors.PRIMARY_BLUE_PRESSED});
                 border: none;
-            }
-            QDialogButtonBox QPushButton[text="OK"]:hover {
+            }}
+            QDialogButtonBox QPushButton[text="OK"]:hover {{
                 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                            stop: 0 #5BA0F2, stop: 1 #4A90E2);
-            }
+                                            stop: 0 {Colors.PRIMARY_BLUE_HOVER}, stop: 1 {Colors.PRIMARY_BLUE});
+            }}
         """)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
@@ -667,9 +734,9 @@ class HoverPlotWidget(PlotWidget):
         """Create the hover tooltip label"""
         self.hover_label = pg.TextItem("", anchor=(0, 1), color='white')
         self.hover_label.setFont(QFont("Segoe UI", 9))
-        self.hover_label.setHtml("""
+        self.hover_label.setHtml(f"""
             <div style='background: rgba(42, 42, 42, 0.9); 
-                        border: 1px solid #666; 
+                        border: 1px solid {Colors.TERTIARY_BORDER}; 
                         border-radius: 4px; 
                         padding: 8px; 
                         color: white;'>
@@ -741,21 +808,21 @@ class HoverPlotWidget(PlotWidget):
         # Create tooltip content
         html_content = f"""
             <div style='background: rgba(42, 42, 42, 0.95); 
-                        border: 1px solid #4A90E2; 
+                        border: 1px solid {Colors.PRIMARY_BLUE}; 
                         border-radius: 6px; 
                         padding: 10px; 
                         color: white;
                         box-shadow: 0 2px 10px rgba(0,0,0,0.3);'>
-                <div style='color: #4A90E2; font-weight: bold; margin-bottom: 4px;'>
+                <div style='color: {Colors.PRIMARY_BLUE}; font-weight: bold; margin-bottom: 4px;'>
                     📊 Ping Data
                 </div>
                 <div style='margin-bottom: 2px;'>
-                    <span style='color: #AAAAAA;'>Time:</span> 
-                    <span style='color: #E0E0E0; font-weight: 500;'>{time_str}</span>
+                    <span style='color: {Colors.SECONDARY_TEXT};'>Time:</span> 
+                    <span style='color: {Colors.PRIMARY_TEXT}; font-weight: 500;'>{time_str}</span>
                 </div>
                 <div>
-                    <span style='color: #AAAAAA;'>Ping:</span> 
-                    <span style='color: #28A745; font-weight: bold; font-size: 11pt;'>{ping_ms:.1f} ms</span>
+                    <span style='color: {Colors.SECONDARY_TEXT};'>Ping:</span> 
+                    <span style='color: {Colors.SUCCESS}; font-weight: bold; font-size: 11pt;'>{ping_ms:.1f} ms</span>
                 </div>
             </div>
         """
@@ -835,7 +902,7 @@ class PingPoller(QMainWindow):
         
         title = QLabel("Ping Poller")
         title.setFont(QFont("Segoe UI", 24, QFont.Weight.Bold))
-        title.setStyleSheet("color: #E0E0E0; margin-bottom: 10px;")
+        title.setStyleSheet(f"color: {Colors.PRIMARY_TEXT}; margin-bottom: 10px;")
         header_layout.addWidget(title)
         
         # Add spacing between title and buttons
@@ -866,13 +933,13 @@ class PingPoller(QMainWindow):
         
         # Controls section
         controls_frame = QFrame()
-        controls_frame.setStyleSheet("""
-            QFrame {
-                background: #2A2A2A;
-                border: 1px solid #444444;
+        controls_frame.setStyleSheet(f"""
+            QFrame {{
+                background: {Colors.SECONDARY_BG};
+                border: 1px solid {Colors.PRIMARY_BORDER};
                 border-radius: 12px;
                 padding: 10px;
-            }
+            }}
         """)
         controls_layout = QGridLayout(controls_frame)
         controls_layout.setSpacing(15)
@@ -881,7 +948,7 @@ class PingPoller(QMainWindow):
         # Domain input
         domain_label = QLabel("Target Domain/IP:")
         domain_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        domain_label.setStyleSheet("color: #AAAAAA;")
+        domain_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
         
         self.domain_input = ModernLineEdit("google.com")
         self.domain_input.setText("google.com")
@@ -889,7 +956,7 @@ class PingPoller(QMainWindow):
         # Interval input
         interval_label = QLabel("Ping Interval (seconds):")
         interval_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        interval_label.setStyleSheet("color: #AAAAAA;")
+        interval_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
         
         self.interval_input = ModernDoubleSpinBox()
         self.interval_input.setRange(0.1, 60.0)
@@ -902,7 +969,7 @@ class PingPoller(QMainWindow):
         # Duration input
         duration_label = QLabel("Test Duration (seconds):")
         duration_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        duration_label.setStyleSheet("color: #AAAAAA;")
+        duration_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
         
         self.duration_input = ModernSpinBox()
         self.duration_input.setRange(10, 3600)
@@ -934,13 +1001,13 @@ class PingPoller(QMainWindow):
         
         # Graph Options section - initially hidden
         self.graph_options_frame = QFrame()
-        self.graph_options_frame.setStyleSheet("""
-            QFrame {
-                background: #2A2A2A;
-                border: 1px solid #444444;
+        self.graph_options_frame.setStyleSheet(f"""
+            QFrame {{
+                background: {Colors.SECONDARY_BG};
+                border: 1px solid {Colors.PRIMARY_BORDER};
                 border-radius: 12px;
                 padding: 10px;
-            }
+            }}
         """)
         graph_options_layout = QHBoxLayout(self.graph_options_frame)
         graph_options_layout.setContentsMargins(20, 15, 20, 15)
@@ -948,7 +1015,7 @@ class PingPoller(QMainWindow):
         # Graph options label
         graph_options_label = QLabel("Graph View:")
         graph_options_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        graph_options_label.setStyleSheet("color: #AAAAAA;")
+        graph_options_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
         graph_options_layout.addWidget(graph_options_label)
         
         # Follow mode checkbox
@@ -960,7 +1027,7 @@ class PingPoller(QMainWindow):
         # Follow window duration
         follow_window_label = QLabel("Window:")
         follow_window_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        follow_window_label.setStyleSheet("color: #AAAAAA;")
+        follow_window_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
         graph_options_layout.addWidget(follow_window_label)
         
         self.follow_window_input = ModernSpinBox()
@@ -987,10 +1054,10 @@ class PingPoller(QMainWindow):
         
         # Basic Statistics cards (always visible)
         self.basic_stats_layout = QHBoxLayout()
-        self.current_ping_card = StatCard("Current Ping", "0 ms", "#28A745")
-        self.avg_ping_card = StatCard("Average Ping", "0 ms", "#4A90E2")
-        self.packet_loss_card = StatCard("Packet Loss", "0%", "#DC3545")
-        self.ping_count_card = StatCard("Ping Count", "0", "#6F42C1")
+        self.current_ping_card = StatCard("Current Ping", "0 ms", Colors.CHART_GREEN)
+        self.avg_ping_card = StatCard("Average Ping", "0 ms", Colors.CHART_BLUE)
+        self.packet_loss_card = StatCard("Packet Loss", "0%", Colors.CHART_RED)
+        self.ping_count_card = StatCard("Ping Count", "0", Colors.CHART_PURPLE)
         
         self.basic_stats_layout.addWidget(self.current_ping_card)
         self.basic_stats_layout.addWidget(self.avg_ping_card)
@@ -1001,10 +1068,10 @@ class PingPoller(QMainWindow):
         
         # Advanced Statistics section - initially hidden
         self.advanced_stats_layout = QHBoxLayout()
-        self.min_ping_card = StatCard("Min Ping", "0 ms", "#17A2B8")
-        self.max_ping_card = StatCard("Max Ping", "0 ms", "#FD7E14")
-        self.jitter_card = StatCard("Jitter", "0 ms", "#E83E8C")
-        self.status_card = StatCard("Ping Quality", "Ready", "#6C757D")
+        self.min_ping_card = StatCard("Min Ping", "0 ms", Colors.CHART_CYAN)
+        self.max_ping_card = StatCard("Max Ping", "0 ms", Colors.CHART_ORANGE)
+        self.jitter_card = StatCard("Jitter", "0 ms", Colors.CHART_PINK)
+        self.status_card = StatCard("Ping Quality", "Ready", Colors.CHART_GRAY)
         
         self.advanced_stats_layout.addWidget(self.min_ping_card)
         self.advanced_stats_layout.addWidget(self.max_ping_card)
@@ -1081,33 +1148,33 @@ class PingPoller(QMainWindow):
                 self.update_graph_view()
         
     def _setup_graph(self):
-        self.graph_widget.setBackground('#1E1E1E')
+        self.graph_widget.setBackground(Colors.PRIMARY_BG)
         self.graph_widget.setLabel('left', 'Ping Time', units='ms', 
-                                  color='#E0E0E0', size='10pt')
+                                  color=Colors.PRIMARY_TEXT, size='10pt')
         self.graph_widget.setLabel('bottom', 'Time', 
-                                  color='#E0E0E0', size='10pt')
+                                  color=Colors.PRIMARY_TEXT, size='10pt')
         self.graph_widget.setTitle('Ping Response Time (Hover over points for details)', 
-                                  color='#E0E0E0', size='12pt')
+                                  color=Colors.PRIMARY_TEXT, size='12pt')
         
         # Customize grid
         self.graph_widget.showGrid(x=True, y=True, alpha=0.3)
         
         # Set axis colors
         axis = self.graph_widget.getAxis('left')
-        axis.setPen(color='#555555')
-        axis.setTextPen(color='#E0E0E0')
+        axis.setPen(color=Colors.SECONDARY_BORDER)
+        axis.setTextPen(color=Colors.PRIMARY_TEXT)
         
         axis = self.graph_widget.getAxis('bottom')
-        axis.setPen(color='#555555')
-        axis.setTextPen(color='#E0E0E0')
+        axis.setPen(color=Colors.SECONDARY_BORDER)
+        axis.setTextPen(color=Colors.PRIMARY_TEXT)
         
         # Create plot line with larger symbols for better hovering
         self.plot_line = self.graph_widget.plot([], [], 
-                                               pen=pg.mkPen(color='#4A90E2', width=2),
+                                               pen=pg.mkPen(color=Colors.PRIMARY_BLUE, width=2),
                                                symbol='o', 
-                                               symbolBrush='#4A90E2',
+                                               symbolBrush=Colors.PRIMARY_BLUE,
                                                symbolSize=6,
-                                               symbolPen=pg.mkPen(color='#E0E0E0', width=1))
+                                               symbolPen=pg.mkPen(color=Colors.PRIMARY_TEXT, width=1))
         
         # Connect view range changed signal to detect manual zoom/pan
         self.graph_widget.sigRangeChanged.connect(self.on_range_changed)
@@ -1200,13 +1267,13 @@ class PingPoller(QMainWindow):
             self.graph_widget.enableAutoRange()
         
     def _apply_theme(self):
-        self.setStyleSheet("""
-            QMainWindow {
-                background: #1E1E1E;
-            }
-            QLabel {
-                color: #E0E0E0;
-            }
+        self.setStyleSheet(f"""
+            QMainWindow {{
+                background: {Colors.PRIMARY_BG};
+            }}
+            QLabel {{
+                color: {Colors.PRIMARY_TEXT};
+            }}
         """)
         
     def test_network_connection(self):
@@ -1325,7 +1392,7 @@ class PingPoller(QMainWindow):
         # Update status
         if self.show_advanced_stats:
             self.status_card.update_value("Ready")
-            self.status_card.value_label.setStyleSheet("color: #6C757D;")  # Gray for ready
+            self.status_card.value_label.setStyleSheet(f"color: {Colors.CHART_GRAY};")  # Gray for ready
         
         # Switch stop button to danger mode
         self.stop_button.set_danger_mode(True)
@@ -1348,7 +1415,7 @@ class PingPoller(QMainWindow):
         # Update status
         if self.show_advanced_stats:
             self.status_card.update_value("Ready")
-            self.status_card.value_label.setStyleSheet("color: #6C757D;")  # Gray for ready
+            self.status_card.value_label.setStyleSheet(f"color: {Colors.CHART_GRAY};")  # Gray for ready
         
         # Remove danger mode
         self.stop_button.set_danger_mode(False)
@@ -1384,7 +1451,7 @@ class PingPoller(QMainWindow):
             self.max_ping_card.update_value("0 ms")
             self.jitter_card.update_value("0 ms")
             self.status_card.update_value("Ready")
-            self.status_card.value_label.setStyleSheet("color: #6C757D;")
+            self.status_card.value_label.setStyleSheet(f"color: {Colors.CHART_GRAY};")
         
         # Disable export button when no data
         self.export_csv_button.setEnabled(False)
@@ -1442,16 +1509,16 @@ class PingPoller(QMainWindow):
             # Update status with color coding based on ping quality
             if ping_time < 50:
                 status_text = "Excellent"
-                status_color = "#28A745"  # Green
+                status_color = Colors.SUCCESS
             elif ping_time < 100:
                 status_text = "Good"
-                status_color = "#FFC107"  # Yellow
+                status_color = Colors.WARNING
             elif ping_time < 200:
                 status_text = "Fair"
-                status_color = "#FD7E14"  # Orange
+                status_color = Colors.WARNING_ORANGE
             else:
                 status_text = "Poor"
-                status_color = "#DC3545"  # Red
+                status_color = Colors.DANGER
                 
             self.status_card.update_value(status_text)
             self.status_card.value_label.setStyleSheet(f"color: {status_color};")
@@ -1470,7 +1537,7 @@ class PingPoller(QMainWindow):
         # Update status to show connection issues (only if advanced stats enabled)
         if self.show_advanced_stats:
             self.status_card.update_value("Connection Issue")
-            self.status_card.value_label.setStyleSheet("color: #DC3545;")  # Red for failed pings
+            self.status_card.value_label.setStyleSheet(f"color: {Colors.DANGER};")  # Red for failed pings
 
 
 def main():
