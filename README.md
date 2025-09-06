@@ -22,14 +22,15 @@ This isn't a super accurate measurement of long term latency due to using ICMP a
 
 - [x] Create a myproject.toml or requirements.txt
 - [x] Create an installer
+- [x] Add different graph display settings (like follow last 30s of data)
+- [x] Add a settings page?
 - [ ] Modularize code
 - [ ] Improve performance and stop storing data in memory for long tests
 - [ ] Improve error handling and reporting
 - [ ] Add support for a light ui
 - [ ] Reduce duplicate code and logic
 - [ ] Use constants for colours ;-;
-- [ ] Add a settings page?
 - [ ] Add option in settings to change graph update interval to reduce some load
 - [ ] Add even more documentation
 - [ ] Add data importing
-- [ ] Add different graph display settings (like follow last 30s of data) 
+ 

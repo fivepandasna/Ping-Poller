@@ -14,7 +14,7 @@ if platform.system() == "Windows":
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                              QWidget, QPushButton, QLineEdit, QSpinBox, QDoubleSpinBox, QLabel, 
                              QFrame, QGridLayout, QSizePolicy, QSpacerItem, QGraphicsOpacityEffect,
-                             QCheckBox, QGroupBox, QFileDialog, QMessageBox)
+                             QCheckBox, QGroupBox, QFileDialog, QMessageBox, QDialog, QDialogButtonBox)
 from PyQt6.QtCore import QTimer, pyqtSignal, QObject, Qt, QPropertyAnimation, QEasingCurve, QParallelAnimationGroup
 from PyQt6.QtGui import QFont, QPalette, QColor, QIcon
 import pyqtgraph as pg
@@ -326,6 +326,30 @@ class CompactButton(QPushButton):
                     color: #888888;
                 }
             """)
+        elif self.style_type == "settings":
+            self.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #6F42C1, stop: 1 #5A31A5);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    padding: 6px 12px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #8A5CF5, stop: 1 #6F42C1);
+                }
+                QPushButton:pressed {
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                stop: 0 #5A31A5, stop: 1 #4C2A91);
+                }
+                QPushButton:disabled {
+                    background: #444444;
+                    color: #888888;
+                }
+            """)
         else:  # secondary
             self.setStyleSheet("""
                 QPushButton {
@@ -427,96 +451,6 @@ class ModernDoubleSpinBox(QDoubleSpinBox):
         """)
 
 
-class DropdownSection(QFrame):
-    def __init__(self, title, parent=None):
-        super().__init__(parent)
-        self.expanded = False  # Start collapsed
-        self.animation_duration = 200
-        
-        # Main layout
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-        
-        # Header button
-        self.header_button = QPushButton()
-        self.header_button.setText(f"▶ {title}")  # Start with collapsed arrow
-        self.header_button.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
-        self.header_button.clicked.connect(self.toggle_expansion)
-        self.header_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.header_button.setStyleSheet("""
-            QPushButton {
-                background: #2A2A2A;
-                border: 2px solid #444444;
-                border-radius: 8px;
-                padding: 12px 16px;
-                text-align: left;
-                color: #4A90E2;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background: #333333;
-                border-color: #4A90E2;
-            }
-            QPushButton:pressed {
-                background: #252525;
-            }
-        """)
-        
-        main_layout.addWidget(self.header_button)
-        
-        # Content widget (collapsible)
-        self.content_widget = QWidget()
-        self.content_layout = QVBoxLayout(self.content_widget)
-        self.content_layout.setContentsMargins(0, 10, 0, 0)
-        
-        main_layout.addWidget(self.content_widget)
-        
-        # Animation setup
-        self.animation = QPropertyAnimation(self.content_widget, b"maximumHeight")
-        self.animation.setDuration(self.animation_duration)
-        self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-        
-        # Store original height for animation
-        self.content_height = 0
-        
-        # Start collapsed
-        self.content_widget.setMaximumHeight(0)
-        
-    def add_content(self, widget):
-        """Add content to the collapsible section"""
-        self.content_layout.addWidget(widget)
-        
-    def update_content_height(self):
-        """Update the stored content height"""
-        self.content_widget.adjustSize()
-        self.content_height = self.content_widget.sizeHint().height()
-        
-    def toggle_expansion(self):
-        """Toggle the expanded/collapsed state with animation"""
-        if self.content_height == 0:
-            self.update_content_height()
-            
-        if self.expanded:
-            # Collapse
-            self.animation.setStartValue(self.content_height)
-            self.animation.setEndValue(0)
-            self.header_button.setText(self.header_button.text().replace("▼", "▶"))
-        else:
-            # Expand
-            self.animation.setStartValue(0)
-            self.animation.setEndValue(self.content_height)
-            self.header_button.setText(self.header_button.text().replace("▶", "▼"))
-            
-        self.expanded = not self.expanded
-        self.animation.start()
-        
-    def set_expanded(self, expanded):
-        """Programmatically set the expanded state"""
-        if self.expanded != expanded:
-            self.toggle_expansion()
-
-
 class ModernCheckBox(QCheckBox):
     def __init__(self, text=""):
         super().__init__(text)
@@ -584,6 +518,133 @@ class StatCard(QFrame):
         
     def update_value(self, value):
         self.value_label.setText(value)
+
+
+class SettingsDialog(QDialog):
+    """Settings dialog for configuring display options"""
+    
+    def __init__(self, parent=None, show_advanced_stats=False, show_graph_options=False):
+        super().__init__(parent)
+        self.setWindowTitle("Settings")
+        self.setModal(True)
+        self.setMinimumWidth(400)
+        self.setMinimumHeight(300)
+        
+        # Apply dark theme to dialog
+        self.setStyleSheet("""
+            QDialog {
+                background: #1E1E1E;
+                color: #E0E0E0;
+            }
+            QLabel {
+                color: #E0E0E0;
+                font-size: 10pt;
+            }
+            QGroupBox {
+                color: #E0E0E0;
+                font-weight: bold;
+                border: 2px solid #444444;
+                border-radius: 8px;
+                margin-top: 12px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 8px 0 8px;
+                color: #4A90E2;
+            }
+        """)
+        
+        layout = QVBoxLayout(self)
+        layout.setSpacing(20)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Title
+        title = QLabel("Display Settings")
+        title.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+        title.setStyleSheet("color: #4A90E2; margin-bottom: 10px;")
+        layout.addWidget(title)
+        
+        # Statistics Group
+        stats_group = QGroupBox("Statistics Display")
+        stats_layout = QVBoxLayout(stats_group)
+        stats_layout.setSpacing(15)
+        
+        self.show_advanced_stats_checkbox = ModernCheckBox("Show Advanced Statistics")
+        self.show_advanced_stats_checkbox.setChecked(show_advanced_stats)
+        self.show_advanced_stats_checkbox.setToolTip("Display additional statistics: Min/Max ping, Jitter, and Connection Quality")
+        stats_layout.addWidget(self.show_advanced_stats_checkbox)
+        
+        # Advanced stats description
+        advanced_desc = QLabel("Advanced statistics include minimum/maximum ping times, jitter (variance), and connection quality indicators.")
+        advanced_desc.setWordWrap(True)
+        advanced_desc.setStyleSheet("color: #AAAAAA; font-size: 9pt; margin-left: 25px;")
+        stats_layout.addWidget(advanced_desc)
+        
+        layout.addWidget(stats_group)
+        
+        # Graph Options Group
+        graph_group = QGroupBox("Graph View Options")
+        graph_layout = QVBoxLayout(graph_group)
+        graph_layout.setSpacing(15)
+        
+        self.show_graph_options_checkbox = ModernCheckBox("Show Graph View Controls")
+        self.show_graph_options_checkbox.setChecked(show_graph_options)
+        self.show_graph_options_checkbox.setToolTip("Display controls for follow mode and view reset options")
+        graph_layout.addWidget(self.show_graph_options_checkbox)
+        
+        # Graph options description
+        graph_desc = QLabel("Graph view controls allow you to enable follow mode (scrolling window) and provide manual view reset options.")
+        graph_desc.setWordWrap(True)
+        graph_desc.setStyleSheet("color: #AAAAAA; font-size: 9pt; margin-left: 25px;")
+        graph_layout.addWidget(graph_desc)
+        
+        layout.addWidget(graph_group)
+        
+        # Spacer
+        layout.addStretch()
+        
+        # Dialog buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.setStyleSheet("""
+            QDialogButtonBox QPushButton {
+                background: #3A3A3A;
+                color: #E0E0E0;
+                border: 1px solid #555555;
+                border-radius: 6px;
+                font-weight: 500;
+                padding: 8px 16px;
+                min-width: 80px;
+            }
+            QDialogButtonBox QPushButton:hover {
+                background: #464646;
+                border-color: #666666;
+            }
+            QDialogButtonBox QPushButton:pressed {
+                background: #2E2E2E;
+            }
+            QDialogButtonBox QPushButton[text="OK"] {
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                            stop: 0 #4A90E2, stop: 1 #357ABD);
+                border: none;
+            }
+            QDialogButtonBox QPushButton[text="OK"]:hover {
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                            stop: 0 #5BA0F2, stop: 1 #4A90E2);
+            }
+        """)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        
+        layout.addWidget(button_box)
+    
+    def get_settings(self):
+        """Return the current settings"""
+        return {
+            'show_advanced_stats': self.show_advanced_stats_checkbox.isChecked(),
+            'show_graph_options': self.show_graph_options_checkbox.isChecked()
+        }
 
 
 class HoverPlotWidget(PlotWidget):
@@ -740,7 +801,13 @@ class PingPoller(QMainWindow):
         
         # View tracking
         self.auto_range_enabled = True
+        self.follow_mode_enabled = False
+        self.follow_window_seconds = 10
         self.original_view_range = None
+        
+        # Settings - both default to False
+        self.show_advanced_stats = False
+        self.show_graph_options = False
         
         # Worker threads
         self.ping_worker = PingWorker()
@@ -753,6 +820,7 @@ class PingPoller(QMainWindow):
         self._setup_ui()
         self._setup_graph()
         self._apply_theme()
+        self._update_ui_visibility()
         
     def _setup_ui(self):
         central_widget = QWidget()
@@ -787,6 +855,12 @@ class PingPoller(QMainWindow):
         header_layout.addWidget(self.export_csv_button)
         
         header_layout.addStretch()
+        
+        # Settings button
+        self.settings_button = CompactButton("⚙️ Settings", "settings")
+        self.settings_button.clicked.connect(self.show_settings)
+        self.settings_button.setToolTip("Configure display options")
+        header_layout.addWidget(self.settings_button)
         
         main_layout.addLayout(header_layout)
         
@@ -844,11 +918,13 @@ class PingPoller(QMainWindow):
         self.stop_button.clicked.connect(self.stop_test)
         self.stop_button.setEnabled(False)
         
-        # Layout controls
+        # Layout controls (first row)
         controls_layout.addWidget(domain_label, 0, 0)
         controls_layout.addWidget(self.domain_input, 0, 1)
         controls_layout.addWidget(interval_label, 0, 2)
         controls_layout.addWidget(self.interval_input, 0, 3)
+        
+        # Second row
         controls_layout.addWidget(duration_label, 1, 0)
         controls_layout.addWidget(self.duration_input, 1, 1)
         controls_layout.addWidget(self.start_button, 1, 2)
@@ -856,28 +932,75 @@ class PingPoller(QMainWindow):
         
         main_layout.addWidget(controls_frame)
         
+        # Graph Options section - initially hidden
+        self.graph_options_frame = QFrame()
+        self.graph_options_frame.setStyleSheet("""
+            QFrame {
+                background: #2A2A2A;
+                border: 1px solid #444444;
+                border-radius: 12px;
+                padding: 10px;
+            }
+        """)
+        graph_options_layout = QHBoxLayout(self.graph_options_frame)
+        graph_options_layout.setContentsMargins(20, 15, 20, 15)
+        
+        # Graph options label
+        graph_options_label = QLabel("Graph View:")
+        graph_options_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
+        graph_options_label.setStyleSheet("color: #AAAAAA;")
+        graph_options_layout.addWidget(graph_options_label)
+        
+        # Follow mode checkbox
+        self.follow_mode_checkbox = ModernCheckBox("Follow Mode (Last 10s)")
+        self.follow_mode_checkbox.setToolTip("Show only the last 10 seconds of data in a scrolling window")
+        self.follow_mode_checkbox.stateChanged.connect(self.on_follow_mode_changed)
+        graph_options_layout.addWidget(self.follow_mode_checkbox)
+        
+        # Follow window duration
+        follow_window_label = QLabel("Window:")
+        follow_window_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
+        follow_window_label.setStyleSheet("color: #AAAAAA;")
+        graph_options_layout.addWidget(follow_window_label)
+        
+        self.follow_window_input = ModernSpinBox()
+        self.follow_window_input.setRange(5, 60)
+        self.follow_window_input.setValue(10)
+        self.follow_window_input.setSuffix(" sec")
+        self.follow_window_input.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
+        self.follow_window_input.setMaximumWidth(100)
+        self.follow_window_input.setToolTip("Duration of the follow window in seconds")
+        self.follow_window_input.valueChanged.connect(self.on_follow_window_changed)
+        self.follow_window_input.setEnabled(False)  # Disabled until follow mode is enabled
+        graph_options_layout.addWidget(self.follow_window_input)
+        
+        graph_options_layout.addStretch()
+        
+        # Reset view button
+        self.reset_view_button = CompactButton("Reset View", "secondary")
+        self.reset_view_button.clicked.connect(self.reset_view)
+        self.reset_view_button.setEnabled(False)
+        self.reset_view_button.setToolTip("Reset graph to show all data with auto-scaling")
+        graph_options_layout.addWidget(self.reset_view_button)
+        
+        main_layout.addWidget(self.graph_options_frame)
+        
         # Basic Statistics cards (always visible)
-        basic_stats_layout = QHBoxLayout()
+        self.basic_stats_layout = QHBoxLayout()
         self.current_ping_card = StatCard("Current Ping", "0 ms", "#28A745")
         self.avg_ping_card = StatCard("Average Ping", "0 ms", "#4A90E2")
         self.packet_loss_card = StatCard("Packet Loss", "0%", "#DC3545")
         self.ping_count_card = StatCard("Ping Count", "0", "#6F42C1")
         
-        basic_stats_layout.addWidget(self.current_ping_card)
-        basic_stats_layout.addWidget(self.avg_ping_card)
-        basic_stats_layout.addWidget(self.packet_loss_card)
-        basic_stats_layout.addWidget(self.ping_count_card)
+        self.basic_stats_layout.addWidget(self.current_ping_card)
+        self.basic_stats_layout.addWidget(self.avg_ping_card)
+        self.basic_stats_layout.addWidget(self.packet_loss_card)
+        self.basic_stats_layout.addWidget(self.ping_count_card)
         
-        main_layout.addLayout(basic_stats_layout)
+        main_layout.addLayout(self.basic_stats_layout)
         
-        # Advanced Statistics dropdown section
-        self.advanced_stats_dropdown = DropdownSection("Advanced Statistics")
-        
-        # Advanced Statistics cards container
-        advanced_stats_container = QWidget()
-        self.advanced_stats_layout = QHBoxLayout(advanced_stats_container)
-        self.advanced_stats_layout.setContentsMargins(0, 0, 0, 0)
-        
+        # Advanced Statistics section - initially hidden
+        self.advanced_stats_layout = QHBoxLayout()
         self.min_ping_card = StatCard("Min Ping", "0 ms", "#17A2B8")
         self.max_ping_card = StatCard("Max Ping", "0 ms", "#FD7E14")
         self.jitter_card = StatCard("Jitter", "0 ms", "#E83E8C")
@@ -888,12 +1011,9 @@ class PingPoller(QMainWindow):
         self.advanced_stats_layout.addWidget(self.jitter_card)
         self.advanced_stats_layout.addWidget(self.status_card)
         
-        # Add the advanced stats container to the dropdown
-        self.advanced_stats_dropdown.add_content(advanced_stats_container)
+        main_layout.addLayout(self.advanced_stats_layout)
         
-        main_layout.addWidget(self.advanced_stats_dropdown)
-        
-        # Graph container with reset button
+        # Graph container
         graph_container = QWidget()
         graph_layout = QVBoxLayout(graph_container)
         graph_layout.setContentsMargins(0, 0, 0, 0)
@@ -902,38 +1022,63 @@ class PingPoller(QMainWindow):
         self.graph_widget = HoverPlotWidget()
         self.graph_widget.setMinimumHeight(400)
         
-        # Reset view button (initially hidden)
-        self.reset_view_button = QPushButton("Reset View")
-        self.reset_view_button.setFixedSize(100, 30)
-        self.reset_view_button.setStyleSheet("""
-            QPushButton {
-                background: rgba(74, 144, 226, 0.8);
-                color: white;
-                border: none;
-                border-radius: 4px;
-                font-size: 9pt;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background: rgba(74, 144, 226, 1.0);
-            }
-            QPushButton:pressed {
-                background: rgba(53, 122, 189, 1.0);
-            }
-        """)
-        self.reset_view_button.clicked.connect(self.reset_view)
-        self.reset_view_button.hide()
-        
         graph_layout.addWidget(self.graph_widget)
         
         main_layout.addWidget(graph_container)
         
-        # Position reset button in bottom left of graph
-        self.reset_view_button.setParent(self.graph_widget)
-        
         # Timer for auto-stop
         self.test_timer = QTimer()
         self.test_timer.timeout.connect(self.stop_test)
+    
+    def show_settings(self):
+        """Show the settings dialog"""
+        dialog = SettingsDialog(self, self.show_advanced_stats, self.show_graph_options)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            settings = dialog.get_settings()
+            self.show_advanced_stats = settings['show_advanced_stats']
+            self.show_graph_options = settings['show_graph_options']
+            self._update_ui_visibility()
+    
+    def _update_ui_visibility(self):
+        """Update UI element visibility based on settings"""
+        # Show/hide advanced statistics
+        for i in range(self.advanced_stats_layout.count()):
+            item = self.advanced_stats_layout.itemAt(i)
+            if item and item.widget():
+                item.widget().setVisible(self.show_advanced_stats)
+        
+        # Show/hide graph options
+        self.graph_options_frame.setVisible(self.show_graph_options)
+        
+    def on_follow_mode_changed(self, state):
+        """Handle follow mode checkbox changes"""
+        self.follow_mode_enabled = state == Qt.CheckState.Checked.value
+        self.follow_window_input.setEnabled(self.follow_mode_enabled)
+        
+        if self.follow_mode_enabled:
+            # Disable auto-range when follow mode is enabled
+            self.auto_range_enabled = False
+            self.follow_window_seconds = self.follow_window_input.value()
+            # Update the checkbox label to show current window size
+            self.follow_mode_checkbox.setText(f"Follow Mode (Last {self.follow_window_seconds}s)")
+        else:
+            # Re-enable auto-range when follow mode is disabled
+            self.auto_range_enabled = True
+            self.follow_mode_checkbox.setText("Follow Mode (Last 10s)")
+            
+        # Update graph view immediately if we have data
+        if len(self.timestamps) > 0:
+            self.update_graph_view()
+            
+    def on_follow_window_changed(self, value):
+        """Handle follow window duration changes"""
+        self.follow_window_seconds = value
+        if self.follow_mode_enabled:
+            # Update the checkbox label
+            self.follow_mode_checkbox.setText(f"Follow Mode (Last {value}s)")
+            # Update graph view immediately if we have data
+            if len(self.timestamps) > 0:
+                self.update_graph_view()
         
     def _setup_graph(self):
         self.graph_widget.setBackground('#1E1E1E')
@@ -967,26 +1112,10 @@ class PingPoller(QMainWindow):
         # Connect view range changed signal to detect manual zoom/pan
         self.graph_widget.sigRangeChanged.connect(self.on_range_changed)
         
-        # Position reset button after graph is set up
-        QTimer.singleShot(100, self.position_reset_button)
-        
-    def position_reset_button(self):
-        """Position the reset view button in the bottom left corner of the graph"""
-        graph_rect = self.graph_widget.rect()
-        button_x = 10
-        button_y = graph_rect.height() - self.reset_view_button.height() - 10
-        self.reset_view_button.move(button_x, button_y)
-        
-    def resizeEvent(self, event):
-        """Reposition reset button when window is resized"""
-        super().resizeEvent(event)
-        if hasattr(self, 'reset_view_button'):
-            QTimer.singleShot(10, self.position_reset_button)
-        
     def on_range_changed(self):
         """Called when the graph view range changes (zoom/pan)"""
-        if self.is_running and len(self.timestamps) > 0:
-            # Check if we're still in auto-range mode
+        if not self.follow_mode_enabled and self.is_running and len(self.timestamps) > 0:
+            # Check if we're still in auto-range mode (only when not in follow mode)
             view_box = self.graph_widget.getViewBox()
             current_range = view_box.viewRange()
             
@@ -1006,17 +1135,69 @@ class PingPoller(QMainWindow):
             if x_diff > x_total * tolerance:
                 # User has manually changed the view
                 self.auto_range_enabled = False
-                self.reset_view_button.show()
+                if self.show_graph_options:
+                    self.reset_view_button.setEnabled(True)
             else:
                 # We're still in auto range
                 self.auto_range_enabled = True
-                self.reset_view_button.hide()
+                if self.show_graph_options:
+                    self.reset_view_button.setEnabled(False)
         
     def reset_view(self):
         """Reset the graph view to auto-range mode"""
         self.auto_range_enabled = True
-        self.graph_widget.enableAutoRange()
-        self.reset_view_button.hide()
+        self.follow_mode_enabled = False
+        
+        # Update UI
+        if self.show_graph_options:
+            self.follow_mode_checkbox.setChecked(False)
+            self.follow_window_input.setEnabled(False)
+            self.reset_view_button.setEnabled(False)
+        
+        # Reset graph view
+        if len(self.timestamps) > 0:
+            self.graph_widget.enableAutoRange()
+        else:
+            self.graph_widget.setRange(xRange=[-1, 1], yRange=[0, 100])
+            
+    def update_graph_view(self):
+        """Update the graph view based on current mode"""
+        if not len(self.timestamps):
+            return
+            
+        if self.follow_mode_enabled:
+            # Follow mode: show only the last N seconds
+            current_time = max(self.timestamps)
+            window_start = current_time - self.follow_window_seconds
+            
+            # Find data points within the window
+            visible_times = []
+            visible_pings = []
+            
+            for i, timestamp in enumerate(self.timestamps):
+                if timestamp >= window_start:
+                    visible_times.append(timestamp)
+                    visible_pings.append(self.ping_times[i])
+            
+            if visible_times:
+                # Set the view range to show the follow window
+                x_range = [window_start, current_time]
+                
+                # Calculate Y range with some padding
+                if visible_pings:
+                    y_min = min(visible_pings)
+                    y_max = max(visible_pings)
+                    y_padding = max((y_max - y_min) * 0.1, 10)  # At least 10ms padding
+                    y_range = [max(0, y_min - y_padding), y_max + y_padding]
+                else:
+                    y_range = [0, 100]
+                
+                # Disable auto range and set manual range
+                self.graph_widget.setRange(xRange=x_range, yRange=y_range, padding=0)
+                
+        elif self.auto_range_enabled:
+            # Auto-range mode: show all data
+            self.graph_widget.enableAutoRange()
         
     def _apply_theme(self):
         self.setStyleSheet("""
@@ -1131,16 +1312,20 @@ class PingPoller(QMainWindow):
         # Enable export button now that we'll have data
         self.export_csv_button.setEnabled(True)
         
-        # Reset view to auto-range and hide reset button
-        self.reset_view()
+        # Reset view states
+        if not self.follow_mode_enabled:
+            self.auto_range_enabled = True
+            if self.show_graph_options:
+                self.reset_view_button.setEnabled(False)
         
         # Update UI state with animations
         self.is_running = True
         self.start_time = datetime.now()
         
         # Update status
-        self.status_card.update_value("Ready")
-        self.status_card.value_label.setStyleSheet("color: #6C757D;")  # Gray for ready
+        if self.show_advanced_stats:
+            self.status_card.update_value("Ready")
+            self.status_card.value_label.setStyleSheet("color: #6C757D;")  # Gray for ready
         
         # Switch stop button to danger mode
         self.stop_button.set_danger_mode(True)
@@ -1161,8 +1346,9 @@ class PingPoller(QMainWindow):
         self.test_timer.stop()
         
         # Update status
-        self.status_card.update_value("Ready")
-        self.status_card.value_label.setStyleSheet("color: #6C757D;")  # Gray for ready
+        if self.show_advanced_stats:
+            self.status_card.update_value("Ready")
+            self.status_card.value_label.setStyleSheet("color: #6C757D;")  # Gray for ready
         
         # Remove danger mode
         self.stop_button.set_danger_mode(False)
@@ -1192,11 +1378,13 @@ class PingPoller(QMainWindow):
         self.avg_ping_card.update_value("0 ms")
         self.packet_loss_card.update_value("0%")
         self.ping_count_card.update_value("0")
-        self.min_ping_card.update_value("0 ms")
-        self.max_ping_card.update_value("0 ms")
-        self.jitter_card.update_value("0 ms")
-        self.status_card.update_value("Ready")
-        self.status_card.value_label.setStyleSheet("color: #6C757D;")
+        
+        if self.show_advanced_stats:
+            self.min_ping_card.update_value("0 ms")
+            self.max_ping_card.update_value("0 ms")
+            self.jitter_card.update_value("0 ms")
+            self.status_card.update_value("Ready")
+            self.status_card.value_label.setStyleSheet("color: #6C757D;")
         
         # Disable export button when no data
         self.export_csv_button.setEnabled(False)
@@ -1230,11 +1418,10 @@ class PingPoller(QMainWindow):
         # Update hover data
         self.graph_widget.update_data(self.timestamps, self.ping_times, self.start_time)
         
-        # Auto-range if enabled
-        if self.auto_range_enabled:
-            self.graph_widget.enableAutoRange()
+        # Update graph view based on current mode
+        self.update_graph_view()
         
-        # Update statistics
+        # Update basic statistics (always visible)
         self.current_ping_card.update_value(f"{ping_time:.1f} ms")
         
         avg_ping = self.total_ping_time / self.ping_count
@@ -1246,27 +1433,28 @@ class PingPoller(QMainWindow):
         
         self.ping_count_card.update_value(str(self.ping_count))
         
-        # Update advanced statistics
-        self.min_ping_card.update_value(f"{self.min_ping:.1f} ms")
-        self.max_ping_card.update_value(f"{self.max_ping:.1f} ms")
-        self.jitter_card.update_value(f"{jitter:.1f} ms")
-        
-        # Update status with color coding based on ping quality
-        if ping_time < 50:
-            status_text = "Excellent"
-            status_color = "#28A745"  # Green
-        elif ping_time < 100:
-            status_text = "Good"
-            status_color = "#FFC107"  # Yellow
-        elif ping_time < 200:
-            status_text = "Fair"
-            status_color = "#FD7E14"  # Orange
-        else:
-            status_text = "Poor"
-            status_color = "#DC3545"  # Red
+        # Update advanced statistics (only if enabled)
+        if self.show_advanced_stats:
+            self.min_ping_card.update_value(f"{self.min_ping:.1f} ms")
+            self.max_ping_card.update_value(f"{self.max_ping:.1f} ms")
+            self.jitter_card.update_value(f"{jitter:.1f} ms")
             
-        self.status_card.update_value(status_text)
-        self.status_card.value_label.setStyleSheet(f"color: {status_color};")
+            # Update status with color coding based on ping quality
+            if ping_time < 50:
+                status_text = "Excellent"
+                status_color = "#28A745"  # Green
+            elif ping_time < 100:
+                status_text = "Good"
+                status_color = "#FFC107"  # Yellow
+            elif ping_time < 200:
+                status_text = "Fair"
+                status_color = "#FD7E14"  # Orange
+            else:
+                status_text = "Poor"
+                status_color = "#DC3545"  # Red
+                
+            self.status_card.update_value(status_text)
+            self.status_card.value_label.setStyleSheet(f"color: {status_color};")
         
     def on_ping_failed(self):
         if not self.is_running:
@@ -1279,9 +1467,10 @@ class PingPoller(QMainWindow):
         packet_loss = (self.failed_count / total_attempts * 100) if total_attempts > 0 else 0
         self.packet_loss_card.update_value(f"{packet_loss:.1f}%")
         
-        # Update status to show connection issues
-        self.status_card.update_value("Connection Issue")
-        self.status_card.value_label.setStyleSheet("color: #DC3545;")  # Red for failed pings
+        # Update status to show connection issues (only if advanced stats enabled)
+        if self.show_advanced_stats:
+            self.status_card.update_value("Connection Issue")
+            self.status_card.value_label.setStyleSheet("color: #DC3545;")  # Red for failed pings
 
 
 def main():
