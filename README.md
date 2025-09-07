@@ -25,7 +25,8 @@ This isn't a super accurate measurement of long term latency due to using ICMP a
 - [x] Add different graph display settings (like follow last 30s of data)
 - [x] Add a settings page?
 - [x] Use constants for colours ;-;
-- [ ] Modularize code
+- [x] Modularize code
+- [] Further odularize code
 - [ ] Improve performance and stop storing data in memory for long tests
 - [ ] Improve error handling and reporting
 - [ ] Add support for a light ui
