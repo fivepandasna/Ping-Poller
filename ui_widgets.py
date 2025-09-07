@@ -410,12 +410,12 @@ class StatCard(QFrame):
 class SettingsDialog(QDialog):
     """Settings dialog for configuring display options"""
     
-    def __init__(self, parent=None, show_advanced_stats=False):
+    def __init__(self, parent=None, show_advanced_stats=False, show_graph_controls=False):
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setModal(True)
-        self.setMinimumWidth(400)
-        self.setMinimumHeight(250)
+        self.setMinimumWidth(450)
+        self.setMinimumHeight(350)
         
         # Apply dark theme to dialog
         self.setStyleSheet(f"""
@@ -471,6 +471,24 @@ class SettingsDialog(QDialog):
         
         layout.addWidget(stats_group)
         
+        # Graph Controls Group
+        graph_group = QGroupBox("Graph Controls")
+        graph_layout = QVBoxLayout(graph_group)
+        graph_layout.setSpacing(15)
+        
+        self.show_graph_controls_checkbox = ModernCheckBox("Show Graph View Controls")
+        self.show_graph_controls_checkbox.setChecked(show_graph_controls)
+        self.show_graph_controls_checkbox.setToolTip("Display graph view mode toggle and window duration controls")
+        graph_layout.addWidget(self.show_graph_controls_checkbox)
+        
+        # Graph controls description
+        graph_desc = QLabel("Graph view controls allow you to switch between auto-range mode and scrolling window mode, with adjustable window duration.")
+        graph_desc.setWordWrap(True)
+        graph_desc.setStyleSheet(f"color: {Colors.SECONDARY_TEXT}; font-size: 9pt; margin-left: 25px;")
+        graph_layout.addWidget(graph_desc)
+        
+        layout.addWidget(graph_group)
+        
         # Spacer
         layout.addStretch()
         
@@ -511,5 +529,6 @@ class SettingsDialog(QDialog):
     def get_settings(self):
         """Return the current settings"""
         return {
-            'show_advanced_stats': self.show_advanced_stats_checkbox.isChecked()
+            'show_advanced_stats': self.show_advanced_stats_checkbox.isChecked(),
+            'show_graph_controls': self.show_graph_controls_checkbox.isChecked()
         }

@@ -43,6 +43,7 @@ class PingPoller(QMainWindow):
         
         # Settings 
         self.show_advanced_stats = False
+        self.show_graph_controls = False  # New setting for graph controls visibility
         
         # Worker threads
         self._setup_workers()
@@ -162,19 +163,19 @@ class PingPoller(QMainWindow):
         self.duration_input.setSuffix(" sec")
         self.duration_input.setButtonSymbols(ModernSpinBox.ButtonSymbols.NoButtons)
         
-        # Graph view controls (moved from separate section)
-        graph_view_label = QLabel("Graph View:")
-        graph_view_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        graph_view_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
+        # Graph view controls (now hidden by default)
+        self.graph_view_label = QLabel("Graph View:")
+        self.graph_view_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
+        self.graph_view_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
         
         self.graph_view_button = CompactButton("Disabled", "secondary")
         self.graph_view_button.setToolTip("Enable scrolling window mode for the graph")
         self.graph_view_button.clicked.connect(self.on_graph_view_button_clicked)
         
         # Window duration input
-        window_label = QLabel("Window:")
-        window_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        window_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
+        self.window_label = QLabel("Window:")
+        self.window_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
+        self.window_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
         
         self.follow_window_input = ModernSpinBox()
         self.follow_window_input.setRange(5, 60)
@@ -194,17 +195,17 @@ class PingPoller(QMainWindow):
         self.stop_button.clicked.connect(self.stop_test)
         self.stop_button.setEnabled(False)
         
-        # Layout controls
+        # Layout controls - simplified when graph controls are hidden
         controls_layout.addWidget(domain_label, 0, 0)
         controls_layout.addWidget(self.domain_input, 0, 1, 1, 2)  # Span 2 columns
-        controls_layout.addWidget(graph_view_label, 0, 3)
+        controls_layout.addWidget(self.graph_view_label, 0, 3)
         controls_layout.addWidget(self.graph_view_button, 0, 4)
         controls_layout.addWidget(interval_label, 0, 5)
         controls_layout.addWidget(self.interval_input, 0, 6)
         
         controls_layout.addWidget(duration_label, 1, 0)
         controls_layout.addWidget(self.duration_input, 1, 1, 1, 2)  # Span 2 columns
-        controls_layout.addWidget(window_label, 1, 3)
+        controls_layout.addWidget(self.window_label, 1, 3)
         controls_layout.addWidget(self.follow_window_input, 1, 4)
         controls_layout.addWidget(self.start_button, 1, 5)
         controls_layout.addWidget(self.stop_button, 1, 6)
@@ -276,10 +277,11 @@ class PingPoller(QMainWindow):
     # Settings Management
     def show_settings(self):
         """Show the settings dialog"""
-        dialog = SettingsDialog(self, self.show_advanced_stats)
+        dialog = SettingsDialog(self, self.show_advanced_stats, self.show_graph_controls)
         if dialog.exec() == SettingsDialog.DialogCode.Accepted:
             settings = dialog.get_settings()
             self.show_advanced_stats = settings['show_advanced_stats']
+            self.show_graph_controls = settings['show_graph_controls']
             self._update_ui_visibility()
     
     def _update_ui_visibility(self):
@@ -289,6 +291,12 @@ class PingPoller(QMainWindow):
             item = self.advanced_stats_layout.itemAt(i)
             if item and item.widget():
                 item.widget().setVisible(self.show_advanced_stats)
+        
+        # Show/hide graph controls
+        self.graph_view_label.setVisible(self.show_graph_controls)
+        self.graph_view_button.setVisible(self.show_graph_controls)
+        self.window_label.setVisible(self.show_graph_controls)
+        self.follow_window_input.setVisible(self.show_graph_controls)
     
     # Graph View Management
     def on_graph_view_button_clicked(self):
@@ -364,10 +372,11 @@ class PingPoller(QMainWindow):
         self.follow_mode_enabled = False
         
         # Update UI
-        self.graph_view_button.setText("Disabled")
-        self.graph_view_button.style_type = "secondary"
-        self.graph_view_button._setup_style()
-        self.follow_window_input.setEnabled(False)
+        if self.show_graph_controls:
+            self.graph_view_button.setText("Disabled")
+            self.graph_view_button.style_type = "secondary"
+            self.graph_view_button._setup_style()
+            self.follow_window_input.setEnabled(False)
         
         # Reset graph view
         if self.data_manager.has_data():
