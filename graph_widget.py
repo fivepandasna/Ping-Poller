@@ -105,18 +105,19 @@ class HoverPlotWidget(PlotWidget):
         self.hover_label.hide()
         
     def create_reset_button(self):
-        """Create the reset view button in the bottom left corner"""
+        """Create the reset view button in the top left corner"""
         self.reset_button = ResetViewButton(self)
         self.reset_button.clicked.connect(self.on_reset_button_clicked)
         
-        # Position the button in the bottom left corner
+        # Position the button in the top left corner
         self.position_reset_button()
         
     def position_reset_button(self):
-        """Position the reset button in the bottom left corner"""
-        # Position button with some margin from the edges
-        margin = 10
-        self.reset_button.move(margin, self.height() - self.reset_button.height() - margin)
+        """Position the reset button in the top left corner"""
+        # Position button with more margin from the edges
+        margin_x = 70 
+        margin_y = 40 
+        self.reset_button.move(margin_x, margin_y)
         
     def resizeEvent(self, event):
         """Handle resize events to reposition the reset button"""
