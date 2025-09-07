@@ -263,6 +263,9 @@ class PingPoller(QMainWindow):
         # Connect view range changed signal to detect manual zoom/pan
         self.graph_widget.sigRangeChanged.connect(self.on_range_changed)
     
+        # Connect reset view button signal
+        self.graph_widget.reset_view_requested.connect(self.reset_view)
+
     def _apply_theme(self):
         """Apply the dark theme to the main window"""
         self.setStyleSheet(f"""

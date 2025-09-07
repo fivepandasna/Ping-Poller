@@ -6,14 +6,53 @@ Custom graph widget with hover functionality for displaying ping data.
 import numpy as np
 from datetime import timedelta
 from PyQt6.QtGui import QFont
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QPushButton
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget, TextItem
 from constants import Colors
 
 
+class ResetViewButton(QPushButton):
+    """Small reset view button for the graph widget"""
+    
+    def __init__(self, parent=None):
+        super().__init__("Reset View", parent)
+        self.setMinimumHeight(32)
+        self.setMaximumHeight(32)
+        self.setMaximumWidth(110)
+        self.setFont(QFont("Segoe UI", 9, QFont.Weight.Medium))
+        self.setToolTip("Reset graph view to auto-range mode")
+        self._setup_style()
+        
+    def _setup_style(self):
+        """Setup button styling to match primary buttons"""
+        self.setStyleSheet(f"""
+            QPushButton {{
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                            stop: 0 {Colors.PRIMARY_BLUE}, stop: 1 {Colors.PRIMARY_BLUE_PRESSED});
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                padding: 6px 12px;
+            }}
+            QPushButton:hover {{
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                            stop: 0 {Colors.PRIMARY_BLUE_HOVER}, stop: 1 {Colors.PRIMARY_BLUE});
+            }}
+            QPushButton:pressed {{
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                            stop: 0 {Colors.PRIMARY_BLUE_PRESSED}, stop: 1 {Colors.PRIMARY_BLUE_DARK});
+            }}
+        """)
+
+
 class HoverPlotWidget(PlotWidget):
     """Custom PlotWidget that shows hover tooltips"""
+    
+    # Signal emitted when reset view button is clicked
+    reset_view_requested = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -22,13 +61,9 @@ class HoverPlotWidget(PlotWidget):
         self.time_data = []
         self.start_time = None
         
-        # Enable mouse tracking
-        self.setMouseTracking(True)
-        
-        # Create hover label
-        self.create_hover_label()
-        
-        # Setup graph styling
+        self.setMouseTracking(True)      
+        self.create_hover_label()  
+        self.create_reset_button()        
         self._setup_styling()
         
     def _setup_styling(self):
@@ -68,6 +103,30 @@ class HoverPlotWidget(PlotWidget):
         """)
         self.addItem(self.hover_label)
         self.hover_label.hide()
+        
+    def create_reset_button(self):
+        """Create the reset view button in the bottom left corner"""
+        self.reset_button = ResetViewButton(self)
+        self.reset_button.clicked.connect(self.on_reset_button_clicked)
+        
+        # Position the button in the bottom left corner
+        self.position_reset_button()
+        
+    def position_reset_button(self):
+        """Position the reset button in the bottom left corner"""
+        # Position button with some margin from the edges
+        margin = 10
+        self.reset_button.move(margin, self.height() - self.reset_button.height() - margin)
+        
+    def resizeEvent(self, event):
+        """Handle resize events to reposition the reset button"""
+        super().resizeEvent(event)
+        if hasattr(self, 'reset_button'):
+            self.position_reset_button()
+            
+    def on_reset_button_clicked(self):
+        """Handle reset button click"""
+        self.reset_view_requested.emit()
         
     def update_data(self, time_data, ping_data, start_time):
         """Update the data arrays for hover functionality"""
