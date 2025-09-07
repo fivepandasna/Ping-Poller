@@ -41,9 +41,8 @@ class PingPoller(QMainWindow):
         self.follow_mode_enabled = False
         self.follow_window_seconds = AppConfig.DEFAULT_FOLLOW_WINDOW
         
-        # Settings - both default to False
+        # Settings 
         self.show_advanced_stats = False
-        self.show_graph_options = False
         
         # Worker threads
         self._setup_workers()
@@ -79,7 +78,6 @@ class PingPoller(QMainWindow):
         # Add all UI components
         self._create_header(main_layout)
         self._create_controls(main_layout)
-        self._create_graph_options(main_layout)
         self._create_statistics_cards(main_layout)
         self._create_graph_container(main_layout)
     
@@ -164,6 +162,30 @@ class PingPoller(QMainWindow):
         self.duration_input.setSuffix(" sec")
         self.duration_input.setButtonSymbols(ModernSpinBox.ButtonSymbols.NoButtons)
         
+        # Graph view controls (moved from separate section)
+        graph_view_label = QLabel("Graph View:")
+        graph_view_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
+        graph_view_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
+        
+        self.graph_view_button = CompactButton("Disabled", "secondary")
+        self.graph_view_button.setToolTip("Enable scrolling window mode for the graph")
+        self.graph_view_button.clicked.connect(self.on_graph_view_button_clicked)
+        
+        # Window duration input
+        window_label = QLabel("Window:")
+        window_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
+        window_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
+        
+        self.follow_window_input = ModernSpinBox()
+        self.follow_window_input.setRange(5, 60)
+        self.follow_window_input.setValue(AppConfig.DEFAULT_FOLLOW_WINDOW)
+        self.follow_window_input.setSuffix(" sec")
+        self.follow_window_input.setButtonSymbols(ModernSpinBox.ButtonSymbols.NoButtons)
+        self.follow_window_input.setMaximumWidth(100)
+        self.follow_window_input.setToolTip("Duration of the scrolling window in seconds")
+        self.follow_window_input.valueChanged.connect(self.on_follow_window_changed)
+        self.follow_window_input.setEnabled(False)
+        
         # Control buttons
         self.start_button = ModernButton("Start Test", primary=True)
         self.start_button.clicked.connect(self.start_test)
@@ -174,70 +196,20 @@ class PingPoller(QMainWindow):
         
         # Layout controls
         controls_layout.addWidget(domain_label, 0, 0)
-        controls_layout.addWidget(self.domain_input, 0, 1)
-        controls_layout.addWidget(interval_label, 0, 2)
-        controls_layout.addWidget(self.interval_input, 0, 3)
+        controls_layout.addWidget(self.domain_input, 0, 1, 1, 2)  # Span 2 columns
+        controls_layout.addWidget(graph_view_label, 0, 3)
+        controls_layout.addWidget(self.graph_view_button, 0, 4)
+        controls_layout.addWidget(interval_label, 0, 5)
+        controls_layout.addWidget(self.interval_input, 0, 6)
         
         controls_layout.addWidget(duration_label, 1, 0)
-        controls_layout.addWidget(self.duration_input, 1, 1)
-        controls_layout.addWidget(self.start_button, 1, 2)
-        controls_layout.addWidget(self.stop_button, 1, 3)
+        controls_layout.addWidget(self.duration_input, 1, 1, 1, 2)  # Span 2 columns
+        controls_layout.addWidget(window_label, 1, 3)
+        controls_layout.addWidget(self.follow_window_input, 1, 4)
+        controls_layout.addWidget(self.start_button, 1, 5)
+        controls_layout.addWidget(self.stop_button, 1, 6)
         
         main_layout.addWidget(controls_frame)
-    
-    def _create_graph_options(self, main_layout):
-        """Create graph options panel (initially hidden)"""
-        self.graph_options_frame = QFrame()
-        self.graph_options_frame.setStyleSheet(f"""
-            QFrame {{
-                background: {Colors.SECONDARY_BG};
-                border: 1px solid {Colors.PRIMARY_BORDER};
-                border-radius: 12px;
-                padding: 10px;
-            }}
-        """)
-        graph_options_layout = QHBoxLayout(self.graph_options_frame)
-        graph_options_layout.setContentsMargins(20, 15, 20, 15)
-        
-        # Graph options label
-        graph_options_label = QLabel("Graph View:")
-        graph_options_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        graph_options_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
-        graph_options_layout.addWidget(graph_options_label)
-        
-        # Follow mode checkbox
-        self.follow_mode_checkbox = ModernCheckBox("Follow Mode (Last 10s)")
-        self.follow_mode_checkbox.setToolTip("Show only the last 10 seconds of data in a scrolling window")
-        self.follow_mode_checkbox.stateChanged.connect(self.on_follow_mode_changed)
-        graph_options_layout.addWidget(self.follow_mode_checkbox)
-        
-        # Follow window duration
-        follow_window_label = QLabel("Window:")
-        follow_window_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Medium))
-        follow_window_label.setStyleSheet(f"color: {Colors.SECONDARY_TEXT};")
-        graph_options_layout.addWidget(follow_window_label)
-        
-        self.follow_window_input = ModernSpinBox()
-        self.follow_window_input.setRange(5, 60)
-        self.follow_window_input.setValue(AppConfig.DEFAULT_FOLLOW_WINDOW)
-        self.follow_window_input.setSuffix(" sec")
-        self.follow_window_input.setButtonSymbols(ModernSpinBox.ButtonSymbols.NoButtons)
-        self.follow_window_input.setMaximumWidth(100)
-        self.follow_window_input.setToolTip("Duration of the follow window in seconds")
-        self.follow_window_input.valueChanged.connect(self.on_follow_window_changed)
-        self.follow_window_input.setEnabled(False)
-        graph_options_layout.addWidget(self.follow_window_input)
-        
-        graph_options_layout.addStretch()
-        
-        # Reset view button
-        self.reset_view_button = CompactButton("Reset View", "secondary")
-        self.reset_view_button.clicked.connect(self.reset_view)
-        self.reset_view_button.setEnabled(False)
-        self.reset_view_button.setToolTip("Reset graph to show all data with auto-scaling")
-        graph_options_layout.addWidget(self.reset_view_button)
-        
-        main_layout.addWidget(self.graph_options_frame)
     
     def _create_statistics_cards(self, main_layout):
         """Create statistics display cards"""
@@ -304,11 +276,10 @@ class PingPoller(QMainWindow):
     # Settings Management
     def show_settings(self):
         """Show the settings dialog"""
-        dialog = SettingsDialog(self, self.show_advanced_stats, self.show_graph_options)
+        dialog = SettingsDialog(self, self.show_advanced_stats)
         if dialog.exec() == SettingsDialog.DialogCode.Accepted:
             settings = dialog.get_settings()
             self.show_advanced_stats = settings['show_advanced_stats']
-            self.show_graph_options = settings['show_graph_options']
             self._update_ui_visibility()
     
     def _update_ui_visibility(self):
@@ -318,26 +289,34 @@ class PingPoller(QMainWindow):
             item = self.advanced_stats_layout.itemAt(i)
             if item and item.widget():
                 item.widget().setVisible(self.show_advanced_stats)
-        
-        # Show/hide graph options
-        self.graph_options_frame.setVisible(self.show_graph_options)
     
     # Graph View Management
-    def on_follow_mode_changed(self, state):
-        """Handle follow mode checkbox changes"""
-        self.follow_mode_enabled = state == Qt.CheckState.Checked.value
+    def on_graph_view_button_clicked(self):
+        """Handle graph view button clicks"""
+        # Toggle the follow mode state
+        self.follow_mode_enabled = not self.follow_mode_enabled
+        
+        # Update button text and style
+        if self.follow_mode_enabled:
+            self.graph_view_button.setText("Enabled")
+            self.graph_view_button.style_type = "success"
+        else:
+            self.graph_view_button.setText("Disabled")
+            self.graph_view_button.style_type = "secondary"
+        
+        # Refresh button styling
+        self.graph_view_button._setup_style()
+        
+        # Update follow window input state
         self.follow_window_input.setEnabled(self.follow_mode_enabled)
         
         if self.follow_mode_enabled:
             # Disable auto-range when follow mode is enabled
             self.auto_range_enabled = False
             self.follow_window_seconds = self.follow_window_input.value()
-            # Update the checkbox label to show current window size
-            self.follow_mode_checkbox.setText(f"Follow Mode (Last {self.follow_window_seconds}s)")
         else:
             # Re-enable auto-range when follow mode is disabled
             self.auto_range_enabled = True
-            self.follow_mode_checkbox.setText("Follow Mode (Last 10s)")
             
         # Update graph view immediately if we have data
         if self.data_manager.has_data():
@@ -347,8 +326,6 @@ class PingPoller(QMainWindow):
         """Handle follow window duration changes"""
         self.follow_window_seconds = value
         if self.follow_mode_enabled:
-            # Update the checkbox label
-            self.follow_mode_checkbox.setText(f"Follow Mode (Last {value}s)")
             # Update graph view immediately if we have data
             if self.data_manager.has_data():
                 self.update_graph_view()
@@ -377,13 +354,9 @@ class PingPoller(QMainWindow):
             if x_diff > x_total * tolerance:
                 # User has manually changed the view
                 self.auto_range_enabled = False
-                if self.show_graph_options:
-                    self.reset_view_button.setEnabled(True)
             else:
                 # We're still in auto range
                 self.auto_range_enabled = True
-                if self.show_graph_options:
-                    self.reset_view_button.setEnabled(False)
     
     def reset_view(self):
         """Reset the graph view to auto-range mode"""
@@ -391,10 +364,10 @@ class PingPoller(QMainWindow):
         self.follow_mode_enabled = False
         
         # Update UI
-        if self.show_graph_options:
-            self.follow_mode_checkbox.setChecked(False)
-            self.follow_window_input.setEnabled(False)
-            self.reset_view_button.setEnabled(False)
+        self.graph_view_button.setText("Disabled")
+        self.graph_view_button.style_type = "secondary"
+        self.graph_view_button._setup_style()
+        self.follow_window_input.setEnabled(False)
         
         # Reset graph view
         if self.data_manager.has_data():
@@ -489,8 +462,6 @@ class PingPoller(QMainWindow):
         # Reset view states
         if not self.follow_mode_enabled:
             self.auto_range_enabled = True
-            if self.show_graph_options:
-                self.reset_view_button.setEnabled(False)
         
         # Update UI state with animations
         self.is_running = True

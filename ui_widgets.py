@@ -410,12 +410,12 @@ class StatCard(QFrame):
 class SettingsDialog(QDialog):
     """Settings dialog for configuring display options"""
     
-    def __init__(self, parent=None, show_advanced_stats=False, show_graph_options=False):
+    def __init__(self, parent=None, show_advanced_stats=False):
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setModal(True)
         self.setMinimumWidth(400)
-        self.setMinimumHeight(300)
+        self.setMinimumHeight(250)
         
         # Apply dark theme to dialog
         self.setStyleSheet(f"""
@@ -471,24 +471,6 @@ class SettingsDialog(QDialog):
         
         layout.addWidget(stats_group)
         
-        # Graph Options Group
-        graph_group = QGroupBox("Graph View Options")
-        graph_layout = QVBoxLayout(graph_group)
-        graph_layout.setSpacing(15)
-        
-        self.show_graph_options_checkbox = ModernCheckBox("Show Graph View Controls")
-        self.show_graph_options_checkbox.setChecked(show_graph_options)
-        self.show_graph_options_checkbox.setToolTip("Display controls for follow mode and view reset options")
-        graph_layout.addWidget(self.show_graph_options_checkbox)
-        
-        # Graph options description
-        graph_desc = QLabel("Graph view controls allow you to enable follow mode (scrolling window) and provide manual view reset options.")
-        graph_desc.setWordWrap(True)
-        graph_desc.setStyleSheet(f"color: {Colors.SECONDARY_TEXT}; font-size: 9pt; margin-left: 25px;")
-        graph_layout.addWidget(graph_desc)
-        
-        layout.addWidget(graph_group)
-        
         # Spacer
         layout.addStretch()
         
@@ -529,6 +511,5 @@ class SettingsDialog(QDialog):
     def get_settings(self):
         """Return the current settings"""
         return {
-            'show_advanced_stats': self.show_advanced_stats_checkbox.isChecked(),
-            'show_graph_options': self.show_graph_options_checkbox.isChecked()
+            'show_advanced_stats': self.show_advanced_stats_checkbox.isChecked()
         }
